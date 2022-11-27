@@ -1,31 +1,9 @@
+""" simplemysql, wrapper for mysql.connector
+
+"""
 #!/usr/bin/env python
 # vim: fileencoding=utf-8: noexpandtab
 # pylint: disable=invalid-name
-
-"""
-    A very simple wrapper for mysql (mysql-connector)
-
-    Methods:
-        getOne() - get a single row
-        getAll() - get all rows
-        lastId() - get the last insert id
-        lastQuery() - get the last executed query
-        insert() - insert a row
-        insertBatch() - Batch Insert
-        insertOrUpdate() - insert a row or update it if it exists
-        update() - update rows
-        delete() - delete rows
-        query()  - run a raw sql query
-        leftJoin() - do an inner left join query and get results
-
-    License: GNU GPLv2
-
-    Kailash Nadh, http://nadh.in
-    May 2013
-
-    Updated by: Milosh Bolic
-    June 2019
-"""
 
 from itertools import repeat
 from collections import namedtuple
@@ -162,12 +140,25 @@ class SimpleMysql:
 
         return rows
 
-    def insert(self, table, data):
-        """Insert a record"""
+    def insert(self, table:str, data: dict):
+        """Insert a single record of data into a table
+
+        ```
+        Parameters:
+        -----------
+        table : str
+            Table name to insert data into
+        data : dict
+            Dictionary containing data to insert
+
+        Example:
+        ----------
+            > simplemysqlobj.insertBatch("table_name", {"colA" : 1, "colB" : 2})
+
+        """
 
         query = self._serialize_insert(data)
-
-        sql = "INSERT INTO %s (%s) VALUES(%s)" % (table, query[0], query[1])
+        sql = f"INSERT INTO {table} ({query[0]}) VALUES({query[1]})"
 
         return self.query(sql, tuple(data.values())).rowcount
 
@@ -201,10 +192,10 @@ class SimpleMysql:
 
         query = self._serialize_update(data)
 
-        sql = "UPDATE %s SET %s" % (table, query)
+        sql = f"UPDATE {table} SET {query}"
 
         if where and len(where) > 0:
-            sql += " WHERE %s" % where[0]
+            sql += f" WHERE {where[0]}"
 
         values = tuple(data.values())
 

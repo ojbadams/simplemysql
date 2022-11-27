@@ -1,16 +1,12 @@
-#SimpleMysql
+# SimpleMysql
 An ultra simple wrapper for Python MySQLdb with very basic functionality
 
-- Kailash Nadh, June 2013
+- Kailash Nadh, June 2013 - Changes made in this fork by Oli Adams, forked Nov 2022
 - Documentation: [http://nadh.in/code/simplemysql](http://nadh.in/code/simplemysql)
 - License: GPL v2
 
 ## Installation
-With pip or easy_install
-
-```pip install simplemysql``` or ```easy_install simplemysql```
-
-Or from the source
+From the source
 
 ```python setup.py install```
 
