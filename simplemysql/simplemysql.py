@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # vim: fileencoding=utf-8: noexpandtab
+# pylint: disable=invalid-name
 
 """
     A very simple wrapper for mysql (mysql-connector)
@@ -26,17 +27,32 @@
     June 2019
 """
 
-import mysql.connector as mysql
-from collections import namedtuple
 from itertools import repeat
-
+from collections import namedtuple
+import mysql.connector as mysql
 
 class SimpleMysql:
-    conn = None
-    cur = None
-    conf = None
+    """
+    Define a SimpleMysql instance to connect with mysql.connector.
+
+    ```
+    Parameters:
+    -----------
+    db : str
+        MySQL Database
+    host : str
+        MySQL Host
+    user : str
+        MySQL user
+    passwd : str
+        MySQL password
+    """
 
     def __init__(self, **kwargs):
+        self.conn = None
+        self.cur = None
+        self.conf = None
+
         self.conf = kwargs
         self.conf["keep_alive"] = kwargs.get("keep_alive", False)
         self.conf["charset"] = kwargs.get("charset", "utf8")
@@ -51,13 +67,17 @@ class SimpleMysql:
 
         try:
             if not self.conf["ssl"]:
-                self.conn = mysql.connect(db=self.conf['db'], host=self.conf['host'],
-                                          port=self.conf['port'], user=self.conf['user'],
+                self.conn = mysql.connect(db=self.conf['db'],
+                                          host=self.conf['host'],
+                                          port=self.conf['port'],
+                                          user=self.conf['user'],
                                           passwd=self.conf['passwd'],
                                           charset=self.conf['charset'])
             else:
-                self.conn = mysql.connect(db=self.conf['db'], host=self.conf['host'],
-                                          port=self.conf['port'], user=self.conf['user'],
+                self.conn = mysql.connect(db=self.conf['db'],
+                                          host=self.conf['host'],
+                                          port=self.conf['port'],
+                                          user=self.conf['user'],
                                           passwd=self.conf['passwd'],
                                           ssl=self.conf['ssl'],
                                           charset=self.conf['charset'])
@@ -151,11 +171,26 @@ class SimpleMysql:
 
         return self.query(sql, tuple(data.values())).rowcount
 
-    def insertBatch(self, table, data):
-        """Insert multiple record"""
+    def insertBatch(self, table: str, data: list):
+        """Insert multiple records of data into a table
+
+        ```
+        Parameters:
+        -----------
+        table : str
+                Table name to insert data into
+        data : list
+                List of dict records to insert
+
+        Example:
+        ----------
+            > simplemysqlobj.insertBatch("table_name", [{"colA" : 1, "colB" : 2},
+                                                        {"colA" : 3, "colB" : 4}])
+
+        """
 
         query = self._serialize_batch_insert(data)
-        sql = "INSERT INTO %s (%s) VALUES %s" % (table, query[0], query[1])
+        sql = f"INSERT INTO {table} ({query[0]}) VALUES {query[1]}"
 
         flattened_values = [v for sublist in data for k, v in iter(sublist.items())]
 
@@ -230,6 +265,19 @@ class SimpleMysql:
 
         return self.cur
 
+    def callProc(self, procedure_name: str, args=()):
+        """ Call a procedure in MySQL
+
+        Parameters:
+        -----------
+        procedure_name : str
+            Name of procedure to call in MySQL
+        args : tuple
+            Parameters to pass, leave empty for no procedures
+
+        """
+        self.cur.callproc(procedure_name, args)
+
     def commit(self):
         """Commit a transaction (transactional engines like InnoDB require this)"""
         return self.conn.commit()
@@ -242,8 +290,6 @@ class SimpleMysql:
         """Kill the connection"""
         self.cur.close()
         self.conn.close()
-
-        # ===
 
     def _serialize_insert(self, data):
         """Format insert dict values into strings"""
